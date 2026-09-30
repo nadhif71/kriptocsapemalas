@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Reveal from "./Reveal";
-import Button from "./Button";
+import ScrollButton from "./ScrollButton";
 
 const tests = [
   { input: 'Encrypt "CAT", key "K"', expected: "08 0a 1f" },
@@ -48,10 +48,9 @@ export default function TestCases() {
       </Reveal>
       <Reveal delay={100}>
         <p className="mt-4 max-w-2xl text-lg text-muted">
-          Try each test yourself. Use the Encrypt / Decrypt box in the{" "}
-          <a href="#xor-cipher" className="text-accent underline">XOR Cipher section</a>, type what you
-          got in "Your output", then click Check.
-        </p>
+          Try each test yourself in the{" "}
+          <a href="#demo" className="text-accent underline">Encrypt / Decrypt box</a>. Type what you
+            got in "Your output", then click Check.        </p>
       </Reveal>
 
       <div className="mt-6 flex items-center gap-3">
@@ -95,7 +94,7 @@ export default function TestCases() {
       </div>
 
       <div className="mt-8">
-        <Button href="#xor-cipher" variant="secondary">↑ Back to XOR Cipher</Button>
+        <ScrollButton target="demo">↑ Back to the demo</ScrollButton>
       </div>
     </section>
   );

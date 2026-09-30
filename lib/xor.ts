@@ -13,7 +13,7 @@ export function parseHex(s: string): number[] | null {
   return out;
 }
 
-export type Result = { ok: true; out: string } | { ok: false; error: string };
+export type Result = { ok: true; out: string; looksLikeText?: boolean } | { ok: false; error: string };
 
 export function encryptText(plain: string, key: string): Result {
   if (!plain) return { ok: false, error: "Please enter a message." };
@@ -23,6 +23,11 @@ export function encryptText(plain: string, key: string): Result {
   return { ok: true, out: toHex(xor(toBytes(plain), toBytes(key))) };
 }
 
+const looksLikeText = (s: string) => {
+  const good = Array.from(s).filter((c) => /[A-Za-z0-9 .,!?'"\-:;()]/.test(c)).length;
+  return s.length > 0 && good / s.length >= 0.85;
+};
+
 export function decryptHex(hex: string, key: string): Result {
   if (!hex.trim()) return { ok: false, error: "Please enter the ciphertext." };
   if (!key) return { ok: false, error: "Please enter a key." };
@@ -30,7 +35,12 @@ export function decryptHex(hex: string, key: string): Result {
     return { ok: false, error: "Only English letters, numbers, and symbols are supported." };
   const c = parseHex(hex);
   if (!c) return { ok: false, error: "Ciphertext must be hex bytes, like: 1f 0d 72" };
-  const p = xor(c, toBytes(key));
+    const p = xor(c, toBytes(key));
   const readable = p.every((b) => b >= 32 && b <= 126);
-  return { ok: true, out: readable ? String.fromCharCode(...p) : "Unreadable text. The key is probably wrong." };
+  const text = readable ? String.fromCharCode(...p) : "";
+  return {
+    ok: true,
+    out: readable ? text : "Unreadable text. The key is probably wrong.",
+    looksLikeText: readable && looksLikeText(text),
+  };
 }
