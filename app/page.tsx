@@ -1,3 +1,4 @@
+import XorSteps from "./components/XorSteps";
 import Button from "./components/Button";
 import Image from "next/image";
 import Header from "./components/Header";
@@ -20,6 +21,7 @@ export default function Home() {
         <p className="mt-4 mb-10 max-w-2xl text-lg text-muted">
           Alice locks a message with a key. Bob needs the same key to read it.
         </p>
+      <XorSteps />
       <XorDemo />
       <div className="mt-8">
         <Button href="#tests" variant="secondary">See test cases ↓</Button>

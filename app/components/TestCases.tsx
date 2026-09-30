@@ -1,24 +1,45 @@
-import Button from "./Button";
-import Reveal from "./Reveal";
-import { encryptText, decryptHex, type Result } from "@/lib/xor";
+"use client";
 
-const show = (r: Result) => (r.ok ? r.out : "Error: " + r.error);
+import { useState } from "react";
+import Reveal from "./Reveal";
+import Button from "./Button";
 
 const tests = [
-  { input: 'Encrypt "CAT", key "K"', run: () => show(encryptText("CAT", "K")), expected: "08 0a 1f" },
-  { input: 'Encrypt "OPEN SESAME", key "KEY"', run: () => show(encryptText("OPEN SESAME", "KEY")), expected: "04 15 1c 05 65 0a 0e 16 18 06 00" },
-  { input: 'Encrypt "2026", key "Z"', run: () => show(encryptText("2026", "Z")), expected: "68 6a 68 6c" },
-  { input: 'Decrypt "02 12 14 77 08 18 04", key "QW"', run: () => show(decryptHex("02 12 14 77 08 18 04", "QW")), expected: "SEE YOU" },
-  { input: 'Encrypt "HI", empty key', run: () => show(encryptText("HI", "")), expected: "Error: Please enter a key." },
-  { input: 'Decrypt "zz 10", key "K"', run: () => show(decryptHex("zz 10", "K")), expected: "Error: Ciphertext must be hex bytes, like: 1f 0d 72" },
+  { input: 'Encrypt "CAT", key "K"', expected: "08 0a 1f" },
+  { input: 'Decrypt "02 12 14 77 08 18 04", key "QW"', expected: "SEE YOU" },
+  { input: 'Encrypt "HI", key left empty', expected: "Error: Please enter a key." },
 ];
 
+type Status = "pass" | "fail" | "empty" | null;
+
+const clean = (s: string) =>
+  s.replace("❌", "").replace(/^\s*error:\s*/i, "").replace(/\s+/g, " ").trim();
+
+const box = "w-full rounded-md border border-line bg-card p-2 font-mono text-sm";
+const small = "rounded-md border border-line px-3 py-1 text-sm hover:bg-card";
+
 export default function TestCases() {
-  const results = tests.map((t) => {
-    const out = t.run();
-    return { ...t, out, pass: out === t.expected };
-  });
-  const passed = results.filter((r) => r.pass).length;
+  const [answers, setAnswers] = useState(["", "", ""]);
+  const [status, setStatus] = useState<Status[]>([null, null, null]);
+
+  function setAnswer(i: number, v: string) {
+    setAnswers((a) => a.map((x, j) => (j === i ? v : x)));
+    setStatus((s) => s.map((x, j) => (j === i ? null : x)));
+  }
+
+  function check(i: number) {
+    let result: Status;
+    if (!answers[i].trim()) result = "empty";
+    else result = clean(answers[i]) === clean(tests[i].expected) ? "pass" : "fail";
+    setStatus((s) => s.map((x, j) => (j === i ? result : x)));
+  }
+
+  function reset() {
+    setAnswers(["", "", ""]);
+    setStatus([null, null, null]);
+  }
+
+  const passed = status.filter((s) => s === "pass").length;
 
   return (
     <section id="tests" className="mx-auto w-full max-w-6xl px-4 py-20 sm:px-6">
@@ -27,12 +48,19 @@ export default function TestCases() {
       </Reveal>
       <Reveal delay={100}>
         <p className="mt-4 max-w-2xl text-lg text-muted">
-          Input → Algorithm → Your output → Expected output → PASS / FAIL.
-          Result: <span className="font-medium">{passed} / {results.length} passed</span>
+          Try each test yourself. Use the Encrypt / Decrypt box in the{" "}
+          <a href="#xor-cipher" className="text-accent underline">XOR Cipher section</a>, type what you
+          got in "Your output", then click Check.
         </p>
       </Reveal>
-      <div className="mt-8 overflow-x-auto">
-        <table className="w-full min-w-[720px] border border-line text-left text-sm">
+
+      <div className="mt-6 flex items-center gap-3">
+        <button className={small} onClick={reset}>Reset</button>
+        <span className="text-sm text-muted">Passed: {passed} / {tests.length}</span>
+      </div>
+
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full min-w-[760px] border border-line text-left text-sm">
           <thead className="bg-card">
             <tr>
               <th className="p-3">#</th>
@@ -43,25 +71,32 @@ export default function TestCases() {
             </tr>
           </thead>
           <tbody>
-            {results.map((r, i) => (
+            {tests.map((t, i) => (
               <tr key={i} className="border-t border-line align-top">
                 <td className="p-3">{i + 1}</td>
-                <td className="p-3">{r.input}</td>
-                <td className="p-3 font-mono">{r.out}</td>
-                <td className="p-3 font-mono">{r.expected}</td>
+                <td className="p-3">{t.input}</td>
                 <td className="p-3">
-                  <span className={"rounded-md px-2 py-1 font-medium " + (r.pass ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700")}>
-                    {r.pass ? "PASS" : "FAIL"}
-                  </span>
+                  <input className={box} value={answers[i]} onChange={(e) => setAnswer(i, e.target.value)} placeholder="Type your output" />
+                </td>
+                <td className="p-3 font-mono">{t.expected}</td>
+                <td className="p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button className={small} onClick={() => check(i)}>Check</button>
+                    {status[i] === null && <span className="text-muted">Not run</span>}
+                    {status[i] === "empty" && <span className="text-red-700">Type your output first</span>}
+                    {status[i] === "pass" && <span className="rounded-md bg-green-50 px-2 py-1 font-medium text-green-700">PASS</span>}
+                    {status[i] === "fail" && <span className="rounded-md bg-red-50 px-2 py-1 font-medium text-red-700">FAIL</span>}
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-        </div>
-            <div className="mt-8">
-                <Button href="#xor-cipher" variant="secondary">↑ Back to XOR Cipher</Button>
-            </div>
+      </div>
+
+      <div className="mt-8">
+        <Button href="#xor-cipher" variant="secondary">↑ Back to XOR Cipher</Button>
+      </div>
     </section>
   );
 }
