@@ -1,9 +1,11 @@
+import Button from "./components/Button";
 import Image from "next/image";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import XORExplanation from "./components/XORExplanation";
 import XorDemo from "./components/XorDemo"; 
 import OneTimePad from "./components/OneTimePad";
+import TestCases from "./components/TestCases"; 
 import Footer from "./components/Footer";
 
 
@@ -19,8 +21,12 @@ export default function Home() {
           Alice locks a message with a key. Bob needs the same key to read it.
         </p>
       <XorDemo />
+      <div className="mt-8">
+        <Button href="#tests" variant="secondary">See test cases ↓</Button>
+      </div>
       </section>
       <OneTimePad />
+      <TestCases />
       <Footer />
      </div>
   );
