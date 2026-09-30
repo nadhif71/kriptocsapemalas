@@ -21,7 +21,7 @@ export default function XorDemo() {
   const [cipherOut, setCipherOut] = useState("");
   const [err1, setErr1] = useState("");
   const [steps, setSteps] = useState<Step[]>([]);
-
+  const [lastEnc, setLastEnc] = useState<{ cipher: string; key: string } | null>(null);
   const [cipherIn, setCipherIn] = useState("");
   const [key2, setKey2] = useState("");
   const [plainOut, setPlainOut] = useState("");
@@ -34,6 +34,7 @@ export default function XorDemo() {
     if (!r.ok) return setErr1(r.error);
     setErr1("");
     setCipherOut(r.out);
+    setLastEnc({ cipher: r.out, key: key1 });
     const p = toBytes(plain);
     const k = toBytes(key1);
     const c = parseHex(r.out) ?? [];
@@ -42,14 +43,20 @@ export default function XorDemo() {
     );
   }
 
-  function decrypt() {
+      function decrypt() {
     setPlainOut("");
+    const sameAsLast = lastEnc && cipherIn.trim() === lastEnc.cipher;
+    if (sameAsLast && key2 && key2 !== lastEnc.key) {
+      return setErr2("Wrong Key!!.");
+    }
     const r = decryptHex(cipherIn, key2);
     if (!r.ok) return setErr2(r.error);
     setErr2("");
-    setPlainOut(r.out);
+    const rightKey = sameAsLast && key2 === lastEnc.key;
+    if (!rightKey && !r.looksLikeText) setPlainOut("Unreadable text. The key is probably wrong.");
+    else setPlainOut(r.out);
   }
-
+  
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
