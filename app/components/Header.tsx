@@ -4,8 +4,6 @@ import { useState } from "react";
 
 const links = [
   { label: "Home", href: "#home" },
-  { label: "XOR Cipher", href: "#xor-cipher" },
-  { label: "One-Time Pad", href: "#otp" },
   { label: "How It Works", href: "#how-it-works" },
 ];
 
